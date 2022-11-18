@@ -25,8 +25,8 @@ namespace Gma.System.MouseKeyHook
         {
         }
 
-        internal KeyEventArgsExt(Keys keyData, int scanCode, int timestamp, bool isKeyDown, bool isKeyUp,
-            bool isExtendedKey)
+        public KeyEventArgsExt(Keys keyData, int scanCode, int timestamp, bool isKeyDown, bool isKeyUp,
+            bool isExtendedKey, int Flags)
             : this(keyData)
         {
             ScanCode = scanCode;
@@ -61,6 +61,11 @@ namespace Gma.System.MouseKeyHook
         /// </summary>
         public bool IsExtendedKey { get; }
 
+        /// <summary>
+        ///     The hardware flags.
+        /// </summary>
+        public int Flags { get; }
+
         internal static KeyEventArgsExt FromRawDataApp(CallbackData data)
         {
             var wParam = data.WParam;
@@ -74,7 +79,7 @@ namespace Gma.System.MouseKeyHook
 
             var timestamp = Environment.TickCount;
 
-            var flags = (uint) lParam.ToInt64();
+            var flags = (int)lParam.ToInt64();
 
             //bit 30 Specifies the previous key state. The value is 1 if the key is down before the message is sent; it is 0 if the key is up.
             var wasKeyDown = (flags & maskKeydown) > 0;
@@ -92,7 +97,7 @@ namespace Gma.System.MouseKeyHook
             var isKeyDown = !isKeyReleased;
             var isKeyUp = wasKeyDown && isKeyReleased;
 
-            return new KeyEventArgsExt(keyData, scanCode, timestamp, isKeyDown, isKeyUp, isExtendedKey);
+            return new KeyEventArgsExt(keyData, scanCode, timestamp, isKeyDown, isKeyUp, isExtendedKey, flags);
         }
 
         internal static KeyEventArgsExt FromRawDataGlobal(CallbackData data)
@@ -112,7 +117,7 @@ namespace Gma.System.MouseKeyHook
             var isExtendedKey = (keyboardHookStruct.Flags & maskExtendedKey) > 0;
 
             return new KeyEventArgsExt(keyData, keyboardHookStruct.ScanCode, keyboardHookStruct.Time, isKeyDown,
-                isKeyUp, isExtendedKey);
+                isKeyUp, isExtendedKey, keyboardHookStruct.Flags);
         }
 
         // # It is not possible to distinguish Keys.LControlKey and Keys.RControlKey when they are modifiers
